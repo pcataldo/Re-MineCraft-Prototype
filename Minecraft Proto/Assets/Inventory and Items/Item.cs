@@ -9,22 +9,22 @@ public class Item
 	public string itemDesc;
 	public Texture2D itemIcon;
 	public int itemPower;
-	public int itemSpeed;
+	public int itemDefense;
 	public ItemType itemType;
 		
 		public enum ItemType 
 		{
-		Sword, Shovel, Pickaxe, Block
+		Sword, Shovel, Pickaxe, Axe, Block, Helmet, Chest, Legs, Boots, Food, Crafting, Map
 		}
 
-	public Item(string name, int id, string desc, int power, int speed, ItemType type)
+	public Item(string name, int id, string desc, int power, int defense, ItemType type)
 	{
 		itemName = name;
 		itemID = id;
 		itemDesc = desc;
 		itemIcon = Resources.Load<Texture2D>("Item Icons/" + name);
 		itemPower = power;
-		itemSpeed = speed;
+		itemDefense = defense;
 		itemType = type;
 	}
 	public Item()
