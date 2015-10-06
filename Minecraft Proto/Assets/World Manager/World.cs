@@ -14,6 +14,7 @@ public class World : MonoBehaviour
 	public int worldSizeX = 4;
 	public int worldSizeZ = 4;
 	public int height = 16;
+	public int seaLevel = 56;
 
 	public GameObject[,,] blockLocation;	//x,z coordinates in the world, Height in the world.
 
