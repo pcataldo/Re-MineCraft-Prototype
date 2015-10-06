@@ -73,8 +73,8 @@ public class RandomWorldGenerator : MonoBehaviour
 	//int[,,] caves??  Or use Biome variable as reference?
 
 	public GameObject[] blocks = new GameObject[0];
-	int xMax = 0;
-	int zMax = 0;
+	int xChunkMax = 0;
+	int zChunkMax = 0;
 
 	void Awake()
 	{
@@ -98,8 +98,8 @@ public class RandomWorldGenerator : MonoBehaviour
 
 		blocks = world.blocks;
 
-		xMax = worldChunks.GetUpperBound(0);
-		zMax = worldChunks.GetUpperBound(1);
+		xChunkMax = worldChunks.GetUpperBound(0);
+		zChunkMax = worldChunks.GetUpperBound(1);
 		
 		for(int x = 0; x <= worldChunks.GetUpperBound(0); x++)
 		{
@@ -163,15 +163,15 @@ public class RandomWorldGenerator : MonoBehaviour
 
 		int iMax;
 
-		if(xMax > zMax)	
-			iMax = (int)(zMax / 2) + zMax%2;
+		if(xChunkMax > zChunkMax)	
+			iMax = (int)(zChunkMax / 2) + zChunkMax%2;
 		else
-			iMax = (int)(xMax / 2) + xMax%2;
+			iMax = (int)(xChunkMax / 2) + xChunkMax%2;
 
 		int variant = 0;
 		for(int i = 1; i <= iMax; i++)
 		{	variant = 0;
-			for(int x = i; x <= xMax - i; x++)
+			for(int x = i; x <= xChunkMax - i; x++)
 			{
 				variant = Random.Range (-1, 2) + Random.Range (0,2);
 
@@ -180,11 +180,11 @@ public class RandomWorldGenerator : MonoBehaviour
 
 				variant = Random.Range (-1, 2) + Random.Range (0,2);
 
-				worldChunks[x,zMax - i].height = i + variant;
-				worldChunks[x,zMax - i].beenSet = true;
+				worldChunks[x,zChunkMax - i].height = i + variant;
+				worldChunks[x,zChunkMax - i].beenSet = true;
 
 			}
-			for(int z = i + 1; z <= zMax - i - 1; z++)
+			for(int z = i + 1; z <= zChunkMax - i - 1; z++)
 			{
 				variant = Random.Range (-1, 2) + Random.Range (0,2);
 
@@ -193,8 +193,8 @@ public class RandomWorldGenerator : MonoBehaviour
 
 				variant = Random.Range (-1, 2) + Random.Range (0,2);
 
-				worldChunks[xMax - i,z].height = i + variant;
-				worldChunks[xMax - i,z].beenSet = true;
+				worldChunks[xChunkMax - i,z].height = i + variant;
+				worldChunks[xChunkMax - i,z].beenSet = true;
 			}
 		}
 
@@ -240,21 +240,21 @@ public class RandomWorldGenerator : MonoBehaviour
 	void DetermineTerrain()	//add an arguement that will allow for different terrain types, like islands, continents, pangea, etc.
 	{	
 		//establsih edges as RAVINES. most likely to be turned into OCEAN
-		for(int x = 1; x <= xMax - 1; x++)
+		for(int x = 1; x <= xChunkMax - 1; x++)
 		{
 			worldChunks[x,0].terrain = TerrainType.RAVINE;
-			worldChunks[x,zMax].terrain = TerrainType.RAVINE;
+			worldChunks[x,zChunkMax].terrain = TerrainType.RAVINE;
 		}
-		for(int z = 1; z <= zMax - 1; z++)
+		for(int z = 1; z <= zChunkMax - 1; z++)
 		{
 			worldChunks[0,z].terrain = TerrainType.RAVINE;
-			worldChunks[xMax,z].terrain = TerrainType.RAVINE;
+			worldChunks[xChunkMax,z].terrain = TerrainType.RAVINE;
 		}
 
 		//establish terrain inside randomly
-		for(int x = 1; x <= xMax - 1; x++)
+		for(int x = 1; x <= xChunkMax - 1; x++)
 		{
-			for(int z = 1; z <= zMax - 1; z++)
+			for(int z = 1; z <= zChunkMax - 1; z++)
 			{
 				int i = Random.Range (1,6);
 
@@ -276,21 +276,21 @@ public class RandomWorldGenerator : MonoBehaviour
 	void DetermineBiome()	//add an argument to be able to choose a particular climate, like temperate, tropical, artic
 	{
 		//establish edges as OCEAN
-		for(int x = 0; x <= xMax; x++)
+		for(int x = 0; x <= xChunkMax; x++)
 		{
 			worldChunks[x,0].biome = Biome.OCEAN;
-			worldChunks[x,zMax].biome = Biome.OCEAN;
+			worldChunks[x,zChunkMax].biome = Biome.OCEAN;
 		}
-		for(int z = 1; z <= zMax - 1; z++)
+		for(int z = 1; z <= zChunkMax - 1; z++)
 		{
 			worldChunks[0,z].biome = Biome.OCEAN;
-			worldChunks[xMax,z].biome = Biome.OCEAN;
+			worldChunks[xChunkMax,z].biome = Biome.OCEAN;
 		}
 
 		//establish Biomes inside randomly
-		for(int x = 1; x <= xMax - 1; x++)
+		for(int x = 1; x <= xChunkMax - 1; x++)
 		{
-			for(int z = 1; z <= zMax - 1; z++)
+			for(int z = 1; z <= zChunkMax - 1; z++)
 			{
 				int i = Random.Range (1,7);
 				
@@ -320,9 +320,9 @@ public class RandomWorldGenerator : MonoBehaviour
 	{
 		TerrainType terrainType;
 
-		for(int x = 0; x <= xMax; x++)
+		for(int x = 0; x <= xChunkMax; x++)
 		{
-			for(int z =0; z<= zMax; z++)
+			for(int z =0; z<= zChunkMax; z++)
 			{
 				terrainType = worldChunks[x,z].terrain;
 				switch(terrainType)
@@ -350,9 +350,9 @@ public class RandomWorldGenerator : MonoBehaviour
 
 	void BuildBiome(Biome biome)
 	{
-		for(int x = 0; x <= xMax; x++)
+		for(int x = 0; x <= xChunkMax; x++)
 		{
-			for(int z =0; z<= zMax; z++)
+			for(int z =0; z<= zChunkMax; z++)
 			{
 				switch(biome)
 				{
@@ -408,7 +408,7 @@ public class RandomWorldGenerator : MonoBehaviour
 		else
 			up = worldChunks [chunkX, chunkZ + 1].height;
 
-		if (chunkZ == zMax)
+		if (chunkZ == zChunkMax)
 			down = chunkHeight;
 		else
 			down = worldChunks [chunkX, chunkZ - 1].height;
@@ -418,13 +418,18 @@ public class RandomWorldGenerator : MonoBehaviour
 		else
 			left = worldChunks [chunkX - 1, chunkZ].height;
 
-		if (chunkX == xMax)
+		if (chunkX == xChunkMax)
 			right = chunkHeight;
 		else
 			right = worldChunks [chunkX + 1, chunkZ].height;
 
 		//determine adjustments due to surrounding heights.  adjustments will be calculated at 50% each direction because each point will have at least two adjustments applied to it.
 		float[,] blockAdj = new float[chunkSize, chunkSize];	//the 50% reduction will prevent adjustments from exceeding surrounding baseheights
+
+		int xMax = chunk.blockHeights.GetUpperBound(0);
+		int zMax = chunk.blockHeights.GetUpperBound(1);
+
+
 		//initialize array
 		for(int x = 0; x <= xMax; x++)
 		{
