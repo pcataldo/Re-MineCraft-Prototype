@@ -4,7 +4,7 @@ using System.Collections;
 public class World : MonoBehaviour 
 {
 	public Blocks blocksScript;
-	GameObject[] blocks = new GameObject[0];	//block types
+	public GameObject[] blocks = new GameObject[0];	//block types
 
 	public GameObject thePlayer;
 	GameObject player = null;

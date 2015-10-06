@@ -36,10 +36,12 @@ public class RandomWorldGenerator : MonoBehaviour
 	{
 		public bool beenSet;
 
-		public Biome biome;
 		public TerrainType terrain;
+		public Biome biome;
 
-		public int[,,] blocks;  //stores the location of each block within the chunk
+		public int[,] blockHeights;	//used by BuildTerrain() and BuildBiome() to store the locations of the surface blocks
+
+		public int[,,] blocks;  //stores the location of each block within the chunk, used by BuildTerrain() for surface blocks and BuildBiome()
 
 		public int height; //base chunkHeight
 		public int up;
@@ -55,19 +57,22 @@ public class RandomWorldGenerator : MonoBehaviour
 		//** this could also be determined using the surroundiong average heights and simply created
 
 	}
-	
+
+	public bool useIndicators = true;
+	public GameObject heightIndicator;
+
 	public GameObject worldManager;
 	World world;
 	int chunkSize;
 	int worldSizeX;
 	int worldSizeZ;
 	int worldHeight;
-
-	public bool useIndicators = true;
-	public GameObject heightIndicator;
-
+	int seaLevel;
+	
 	public Chunk[,] worldChunks = new Chunk[4,4];
 	//int[,,] caves??  Or use Biome variable as reference?
+
+	public GameObject[] blocks = new GameObject[0];
 	int xMax = 0;
 	int zMax = 0;
 
@@ -87,8 +92,11 @@ public class RandomWorldGenerator : MonoBehaviour
 		worldSizeX = world.worldSizeX;
 		worldSizeZ = world.worldSizeZ;
 		worldHeight = world.height;
+		seaLevel = world.seaLevel;
 
 		worldChunks = new Chunk[worldSizeX,worldSizeZ];
+
+		blocks = world.blocks;
 
 		xMax = worldChunks.GetUpperBound(0);
 		zMax = worldChunks.GetUpperBound(1);
@@ -100,6 +108,7 @@ public class RandomWorldGenerator : MonoBehaviour
 				worldChunks[x,z].beenSet = false;
 				worldChunks[x,z].terrain = TerrainType.EMPTY;
 				worldChunks[x,z].biome = Biome.EMPTY;
+				worldChunks[x,z].blockHeights = new int[chunkSize,chunkSize];
 				worldChunks[x,z].blocks = new int[chunkSize,chunkSize * worldHeight,chunkSize];
 				worldChunks[x,z].height = 0;
 				worldChunks[x,z].up = 0;
@@ -111,10 +120,12 @@ public class RandomWorldGenerator : MonoBehaviour
 
 		BuildEdges();
 		BaseHeight();
-		if(useIndicators)
-			HeightIndicators();
 		DetermineTerrain();
 		DetermineBiome();
+		if(useIndicators)
+			HeightIndicators();
+		BuildTerrain();
+
 
 	}
 	
@@ -200,6 +211,27 @@ public class RandomWorldGenerator : MonoBehaviour
 				GameObject indicator = Instantiate(heightIndicator, pos, Quaternion.identity) as GameObject;
 				indicator.name = "Incidicator - [" + x + "," + z + "] " + "Height: " + worldChunks[x,z].height + " " + worldChunks[x,z].beenSet;
 
+				switch (worldChunks[x,z].terrain)
+				{
+					case TerrainType.FLAT:
+					indicator.GetComponent<Indicator>().terrainType = "Flat";
+						break;
+				default:
+						indicator.GetComponent<Indicator>().terrainType = "other";
+						break;
+				}
+
+				switch (worldChunks[x,z].biome)
+				{
+				case Biome.PLAIN:
+					indicator.GetComponent<Indicator>().biome = "Plain";
+					break;
+				default:
+					indicator.GetComponent<Indicator>().biome = "other";
+					break;
+				}
+
+
 			}
 		}
 
@@ -284,13 +316,16 @@ public class RandomWorldGenerator : MonoBehaviour
 		}
 	}
 
-	void BuildTerrain(TerrainType terrain)
+	void BuildTerrain()
 	{
+		TerrainType terrainType;
+
 		for(int x = 0; x <= xMax; x++)
 		{
 			for(int z =0; z<= zMax; z++)
 			{
-				switch(terrain)
+				terrainType = worldChunks[x,z].terrain;
+				switch(terrainType)
 				{
 				case TerrainType.FLAT:
 					BuildFlat(x,z);
@@ -354,15 +389,9 @@ public class RandomWorldGenerator : MonoBehaviour
 
 	}
 
-	void BuildFlat(int chunkX, int chunkZ)
+	void BuildFlat(int chunkX, int chunkZ)	//the array coordinates need to be passed for the chunk that's being processed.  They are needed for reference
 	{
-		//add scalar from x-1 baseheight to x + 1 baseheight,	scalarEnd = 0, which is the baseHeight		going outer to chunk center
-		//add Scalar from z-1 baseheihgt to x+1 baseheight		scalarStart = other.baseheight - baseheight
-		//block heights are baseheight + scalar.
 		//add a random variant to each column and row, variants should be no more than 0.5 each. (can add multipliers based on terrain type)
-		//scalar mid positions (7,8 ?) need to be at the baseHeight.  
-			//x - x +7 is leftHeight - baseheight, x+8 - x + 15 is baseheight - rightHeight
-			//z - z +7 is downHieght - baseheight, z+8 - z + 15 is baseHeight = upHeight
 
 		Chunk chunk = worldChunks [chunkX,chunkZ];
 
@@ -394,13 +423,90 @@ public class RandomWorldGenerator : MonoBehaviour
 		else
 			right = worldChunks [chunkX + 1, chunkZ].height;
 
-		//determine scalars
-		float[,] blockAdj = new float[chunk.blocks.GetUpperBound(0), chunk.blocks.GetUpperBound(1)];
-
-		for(int x = 0; x < xMax/2; x++)
+		//determine adjustments due to surrounding heights.  adjustments will be calculated at 50% each direction because each point will have at least two adjustments applied to it.
+		float[,] blockAdj = new float[chunkSize, chunkSize];	//the 50% reduction will prevent adjustments from exceeding surrounding baseheights
+		//initialize array
+		for(int x = 0; x <= xMax; x++)
 		{
-
+			for(int z = 0; z <= zMax; z++)
+			{
+				blockAdj[x,z] = 0;
+			}
 		}
+
+		int difference = left - chunkHeight;
+		for(int x = 0; x < (int)xMax/2; x++)
+		{
+			for(int z = 0; z <= zMax; z++)
+			{	
+				int adj = 0;
+				//find adjustment from left to center
+				adj += difference - ( (x+1) * ( difference/(chunkSize/2) ) );
+				blockAdj[x,z] = adj / 2;
+			}
+		}
+
+		difference = right - chunkHeight;
+		for(int x = (int)xMax/2 + 1; x <= xMax; x++)
+		{
+			for(int z = 0; z <= zMax; z++)
+			{	
+				int adj = 0;
+				//find adjustment from center to right   
+				adj += difference - ( (chunkSize - x) * ( difference/(chunkSize/2) ) );
+				blockAdj[x,z] = adj / 2;
+			}
+		}
+
+		difference = down - chunkHeight;
+		for(int z = 0; z < (int)zMax/2; z++)
+		{
+			for(int x = 0; x <= xMax; x++)
+			{	
+				int adj = 0;
+				//find adjustment from down to center
+				adj += difference - ( (z+1) * ( difference/(chunkSize/2) ) );
+				blockAdj[x,z] = adj / 2;
+			}
+		}
+
+		difference = up - chunkHeight;
+		for(int z = (int)zMax/2 + 1; z <= zMax; z++)
+		{
+			for(int x = 0; x <= xMax; x++)
+			{	
+				int adj = 0;
+				//find adjustment from center to up
+				adj += difference - ( (chunkSize - z) * ( difference/(chunkSize/2) ) );
+				blockAdj[x,z] = adj / 2;
+			}
+		}
+
+		//add other random adjustments.  or PerlinNoise it.
+
+		//store the surface block locations for the chunk;
+		for(int x = 0; x <= xMax; x++)
+		{
+			for(int z = 0; z <= zMax; z++)
+			{
+				int y = (int)(seaLevel + chunk.height + blockAdj[x,z]);
+				chunk.blockHeights[x,z] = y;
+			}
+		}
+
+		//block creation for testing
+		for(int x = 0; x <= xMax; x++)
+		{
+			for(int z = 0; z <= zMax; z++)
+			{
+				Vector3 worldPos = new Vector3( (chunkX * chunkSize) + x, chunk.blockHeights[x,z], (chunkZ * chunkSize) + z);
+				GameObject block = Instantiate(blocks[2], worldPos, Quaternion.identity) as GameObject;
+				world.AddBlock(block, worldPos);
+			}
+		}
+		//create and add block to world.blocks
+		//create blocks at new Vector3(chunks x, chunk.height + blockAdj[x,z],chunks z);
+
 
 
 	}
