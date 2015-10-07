@@ -12,15 +12,15 @@ public class ItemDatabase : MonoBehaviour
 		//Wood
 		items.Add (new Item ("Wood Sword",0,"Makes good firewood.\n\nPower: 1", 1, 1, Item.ItemType.Sword));
 		items.Add (new Item ("Wood Shovel",1,"Might want to just use your hands.\n\nPower: 1", 1, 1, Item.ItemType.Shovel));
-		items.Add (new Item ("Wood Pickaxe",2,"Can crack stone. I swear./n/nPower: 1", 1, 1, Item.ItemType.Pickaxe));
-		items.Add (new Item ("Wood Axe",3,"Better than punching the tree down with your fists./n/nPower: 1", 1, 1, Item.ItemType.Axe));
+		items.Add (new Item ("Wood Pickaxe",2,"Can crack stone. I swear.\n\nPower: 1", 1, 1, Item.ItemType.Pickaxe));
+		items.Add (new Item ("Wood Axe",3,"Better than punching the tree down with your fists.\n\nPower: 1", 1, 1, Item.ItemType.Axe));
 		//Stone
 		items.Add (new Item ("Stone Sword", 4, "Barney Rubble approves.\n\nPower: 2", 2, 1, Item.ItemType.Sword));
 		items.Add (new Item ("Stone Shovel",5,"Really should lay off the herb.\n\nPower: 2", 2, 1, Item.ItemType.Shovel));
 		items.Add (new Item ("Stone Pickaxe",6,"Maybe you'll get lucky and it'll work.\n\nPower: 2", 2, 1, Item.ItemType.Pickaxe));
 		items.Add (new Item ("Stone Axe",7,"It'll chip away at the bark. One day.\n\nPower: 2", 2, 1, Item.ItemType.Axe));
 		//Iron
-		items.Add (new Item ("Iron Sword",8,"Beats stone./n/nPower: 3", 3, 1, Item.ItemType.Sword));
+		items.Add (new Item ("Iron Sword",8,"Beats stone.\n\nPower: 3", 3, 1, Item.ItemType.Sword));
 		items.Add (new Item ("Iron Shovel",9,"Actually an effective means of digging\n\nPower: 3.", 3, 1, Item.ItemType.Shovel));
 		items.Add (new Item ("Iron Pickaxe",10,"It's actually a pickaxe.\n\nPower: 3", 3, 1, Item.ItemType.Pickaxe));
 		items.Add (new Item ("Iron Axe",11,"Don't lose your head over it.\n\nPower: 3", 3, 1, Item.ItemType.Axe));
@@ -34,9 +34,6 @@ public class ItemDatabase : MonoBehaviour
 		items.Add (new Item ("Diamond Shovel",17,"If you love her, bury her with diamonds.\n\nPower: 5", 5, 1, Item.ItemType.Shovel));
 		items.Add (new Item ("Diamond Pickaxe",18,"No stones stand a chance.\n\nPower: 5", 5, 1, Item.ItemType.Pickaxe));
 		items.Add (new Item ("Diamond Axe",19,"Comes with a life time warranty.\n\nPower: 5", 5, 1, Item.ItemType.Axe));
-
-		//-----------Map
-		items.Add (new Item ("Map",50,"Better draw it neatly.", 1, 1, Item.ItemType.Map));
 
 		//-----------Armor
 		//Leather
@@ -77,6 +74,9 @@ public class ItemDatabase : MonoBehaviour
 		items.Add (new Item ("Cooked Pork",47,"You failed to make Bacon.", 1, 1, Item.ItemType.Food));
 		items.Add (new Item ("Cooked Steak",48,"Tasted better Raw.", 1, 1, Item.ItemType.Food));
 		items.Add (new Item ("Lying Cake",49,"It's a lie.", 1, 1, Item.ItemType.Food));
+
+		//-----------Map
+		items.Add (new Item ("Map",50,"Better draw it neatly.", 1, 1, Item.ItemType.Map));
 
 
 
