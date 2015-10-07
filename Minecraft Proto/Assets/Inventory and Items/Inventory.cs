@@ -35,6 +35,12 @@ public class Inventory : MonoBehaviour
 	{
 		if(Input.GetButtonDown("Inventory"))
 		{
+			if(Time.timeScale == 0)
+			{
+				Time.timeScale = 1;
+			}
+			else
+				Time.timeScale = 0;
 			showInventory = !showInventory;
 		}
 	}
@@ -67,13 +73,15 @@ public class Inventory : MonoBehaviour
 		{
 		Event e = Event.current; //Helps cut down on typing by using e instead of Event.current
 		int i = 0;
-
+		
+		Rect screenRect = new Rect(0,0, slotsX*35, slotsY*35);
 			for (int y = 0; y < slotsY; y++)	//Creates rows and columns of inventory slots
 			{
 				for(int x = 0; x< slotsX; x++)	
-				{
+			{
 				Rect slotRect = new Rect(x * 35, y * 35, 30, 30);
 				GUI.Box (slotRect, "", skin.GetStyle("Slot"));	//attaches slot skin to GUI placement
+
 				slots[i] = inventory[i];	//creates temperary inventory info holder
 
 				if(slots[i].itemName != null)	//if slot contains item
@@ -101,18 +109,38 @@ public class Inventory : MonoBehaviour
 					}
 				} 
 
-				else 		//If no item is in slot that currently dragged item is placed over. Basically the same code just without using placeholder prevIndex to swap items.
+				else		//If no item is in slot that currently dragged item is placed over. Basically the same code just without using placeholder prevIndex to swap items.
+				{
+					
+					if (screenRect.Contains(e.mousePosition))
 					{
 						if (slotRect.Contains(e.mousePosition))
 						{
 							if(e.type == EventType.mouseUp && draggingItem)
 							{
+							print ("item move");
 								inventory[i] = draggedItem;
 								draggingItem = false;
 								draggedItem = null;
 							}
 						}
 					}
+					else
+					{
+						if(e.type == EventType.mouseUp && draggingItem)
+						{
+							print ("item drop");
+							GameObject droppedItem = GameObject.CreatePrimitive(PrimitiveType.Plane);
+							droppedItem.transform.position = GameObject.Find("FPSController").transform.position;
+							//droppedItem.AddComponent<Item>();
+							draggingItem = false;
+							draggedItem = null;
+						}
+					}
+
+				}
+
+
 				if(toolTip == "")
 				{
 					showToolTip = false;
