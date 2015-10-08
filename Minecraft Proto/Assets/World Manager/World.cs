@@ -85,7 +85,10 @@ public class World : MonoBehaviour
 
 	public void AddBlock(GameObject block, Vector3 atPosition)
 	{
-		blockLocation[(int)atPosition.x, (int)atPosition.y, (int)atPosition.z] = block;
+		if(atPosition.x > 0 && atPosition.x <= blockLocation.GetUpperBound(0))
+			if(atPosition.y > 0 && atPosition.y <= blockLocation.GetUpperBound(1))
+				if(atPosition.z > 0 && atPosition.z <= blockLocation.GetUpperBound(2))
+					blockLocation[(int)atPosition.x, (int)atPosition.y, (int)atPosition.z] = block;
 	}
 
 	public void RemoveBlock(GameObject block, Vector3 fromPosition)	
