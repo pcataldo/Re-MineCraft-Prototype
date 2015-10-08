@@ -128,6 +128,17 @@ public class Inventory : MonoBehaviour
 		{
 		Event e = Event.current; //Helps cut down on typing by using e instead of Event.current
 		int i = 0;
+<<<<<<< HEAD
+		
+		Rect screenRect = new Rect(0,0, slotsX*35, slotsY*35);
+			for (int y = 0; y < slotsY; y++)	//Creates rows and columns of inventory slots
+			{
+				for(int x = 0; x< slotsX; x++)	
+			{
+				Rect slotRect = new Rect(x * 35, y * 35, 30, 30);
+				GUI.Box (slotRect, "", skin.GetStyle("Slot"));	//attaches slot skin to GUI placement
+
+=======
 		int x = 0;
 		int y = 0;
 		
@@ -145,6 +156,7 @@ public class Inventory : MonoBehaviour
 				GUI.Box (slotRect, "", skin.GetStyle("Slot"));	//attaches slot skin to GUI placement
 
 
+>>>>>>> origin/master
 				slots[i] = inventory[i];	//creates temperary inventory info holder
 
 				if(slots[i].itemName != null)	//if slot contains item
@@ -204,6 +216,10 @@ public class Inventory : MonoBehaviour
 							draggedItem = null;
 						}
 					}
+<<<<<<< HEAD
+
+=======
+>>>>>>> origin/master
 				}
 
 
