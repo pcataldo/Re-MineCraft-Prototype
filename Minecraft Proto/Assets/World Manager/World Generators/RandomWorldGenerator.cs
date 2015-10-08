@@ -328,7 +328,7 @@ public class RandomWorldGenerator : MonoBehaviour
 				switch(terrainType)
 				{
 				case TerrainType.FLAT:
-					BuildFlat(x,z);
+					BuildFlat(x,z, 0);
 					break;
 				case TerrainType.HILL:
 					
@@ -389,8 +389,8 @@ public class RandomWorldGenerator : MonoBehaviour
 
 	}
 
-	void BuildFlat(int chunkX, int chunkZ)	//the array coordinates need to be passed for the chunk that's being processed.  They are needed for reference
-	{
+	void BuildFlat(int chunkX, int chunkZ, float terrainMod)	//the array coordinates need to be passed for the chunk that's being processed.  They are needed for reference
+{					//terrainMod is a multiplier that allows for different heights to be applied to the chunks over all height.  the value sets the height at the center of the chunk
 		//add a random variant to each column and row, variants should be no more than 0.5 each. (can add multipliers based on terrain type)
 
 		Chunk chunk = worldChunks [chunkX,chunkZ];
@@ -403,12 +403,12 @@ public class RandomWorldGenerator : MonoBehaviour
 		int right;
 
 		//get all the surrounding chunk heights
-		if (chunkZ == 0)
+		if (chunkZ == zChunkMax)
 			up = chunkHeight;
 		else
 			up = worldChunks [chunkX, chunkZ + 1].height;
 
-		if (chunkZ == zChunkMax)
+		if (chunkZ == 0)
 			down = chunkHeight;
 		else
 			down = worldChunks [chunkX, chunkZ - 1].height;
@@ -435,19 +435,19 @@ public class RandomWorldGenerator : MonoBehaviour
 		{
 			for(int z = 0; z <= zMax; z++)
 			{
-				blockAdj[x,z] = 0;
+				blockAdj[x,z] = 0f;
 			}
 		}
 
 		int difference = left - chunkHeight;
-		for(int x = 0; x < (int)xMax/2; x++)
+		for(int x = 0; x < (int)xMax/2f; x++)
 		{
 			for(int z = 0; z <= zMax; z++)
 			{	
-				int adj = 0;
+				float adj = 0f;
 				//find adjustment from left to center
-				adj += difference - ( (x+1) * ( difference/(chunkSize/2) ) );
-				blockAdj[x,z] = adj / 2;
+				adj = difference - ( (x+1) * ( difference/(chunkSize/2f) ) );
+				blockAdj[x,z] += adj / 2f;
 			}
 		}
 
@@ -456,22 +456,22 @@ public class RandomWorldGenerator : MonoBehaviour
 		{
 			for(int z = 0; z <= zMax; z++)
 			{	
-				int adj = 0;
+				float adj = 0f;
 				//find adjustment from center to right   
-				adj += difference - ( (chunkSize - x) * ( difference/(chunkSize/2) ) );
-				blockAdj[x,z] = adj / 2;
+				adj = difference - ( (chunkSize - x) * ( difference/(chunkSize/2f) ) );
+				blockAdj[x,z] += adj / 2f;
 			}
 		}
 
 		difference = down - chunkHeight;
-		for(int z = 0; z < (int)zMax/2; z++)
-		{
+		for(int z = 0; z < (int)zMax/2f; z++)
+		{	
 			for(int x = 0; x <= xMax; x++)
 			{	
-				int adj = 0;
+				float adj = 0f;
 				//find adjustment from down to center
-				adj += difference - ( (z+1) * ( difference/(chunkSize/2) ) );
-				blockAdj[x,z] = adj / 2;
+				adj = difference - ( (z+1) * ( difference/(chunkSize/2f) ) );
+				blockAdj[x,z] += adj / 2f;
 			}
 		}
 
@@ -480,10 +480,10 @@ public class RandomWorldGenerator : MonoBehaviour
 		{
 			for(int x = 0; x <= xMax; x++)
 			{	
-				int adj = 0;
+				float adj = 0f;
 				//find adjustment from center to up
-				adj += difference - ( (chunkSize - z) * ( difference/(chunkSize/2) ) );
-				blockAdj[x,z] = adj / 2;
+				adj = difference - ( (chunkSize - z) * ( difference/(chunkSize/2f) ) );
+				blockAdj[x,z] += adj / 2f;
 			}
 		}
 
@@ -507,6 +507,7 @@ public class RandomWorldGenerator : MonoBehaviour
 				Vector3 worldPos = new Vector3( (chunkX * chunkSize) + x, chunk.blockHeights[x,z], (chunkZ * chunkSize) + z);
 				GameObject block = Instantiate(blocks[2], worldPos, Quaternion.identity) as GameObject;
 				world.AddBlock(block, worldPos);
+				block.name = "Adj = " + blockAdj[x,z];
 			}
 		}
 		//create and add block to world.blocks
