@@ -58,8 +58,15 @@ public class RandomWorldGenerator : MonoBehaviour
 
 	}
 
-	public bool useIndicators = true;
+	public bool useIndicators = false;
 	public GameObject heightIndicator;
+
+	public int flats = 1;
+	public int hills = 1;
+	public int mountains = 1;
+	public int sinks = 1;
+	public int ravines = 1;
+
 
 	public GameObject worldManager;
 	World world;
@@ -125,6 +132,7 @@ public class RandomWorldGenerator : MonoBehaviour
 		if(useIndicators)
 			HeightIndicators();
 		BuildTerrain();
+		BuildBiome();
 
 
 	}
@@ -256,17 +264,17 @@ public class RandomWorldGenerator : MonoBehaviour
 		{
 			for(int z = 1; z <= zChunkMax - 1; z++)
 			{
-				int i = Random.Range (1,6);
+				int i = Random.Range (1, flats + hills + mountains + sinks + ravines);
 
-				if(i == 1)
+				if(1 <= i && i <= flats)
 					worldChunks[x,z].terrain = TerrainType.FLAT;
-				if(i == 2)
+				if(flats < i && i <= (flats + hills))
 					worldChunks[x,z].terrain = TerrainType.HILL;
-				if(i == 3)
+				if(flats + hills < i && i <= flats + hills + mountains)
 					worldChunks[x,z].terrain = TerrainType.MOUNTAIN;
-				if(i == 4)
+				if(flats + hills + mountains < i && i <= flats + hills + mountains + sinks)
 					worldChunks[x,z].terrain = TerrainType.SINK;
-				if(i == 5)
+				if(flats + hills + mountains + sinks < i && i <= flats + hills + mountains + sinks + ravines)
 					worldChunks[x,z].terrain = TerrainType.RAVINE;
 			}
 		}
@@ -328,19 +336,19 @@ public class RandomWorldGenerator : MonoBehaviour
 				switch(terrainType)
 				{
 				case TerrainType.FLAT:
-					BuildFlat(x,z, 0);
+					TerrainBuilder(x,z, 0);
 					break;
 				case TerrainType.HILL:
-					
+					TerrainBuilder(x,z, 3);
 					break;
 				case TerrainType.MOUNTAIN:
-					
+					TerrainBuilder(x,z, 8);
 					break;
 				case TerrainType.SINK:
-					
+					TerrainBuilder(x,z, -3);
 					break;
 				case TerrainType.RAVINE:
-					
+					TerrainBuilder(x,z, -8);
 					break;
 				}
 			}
@@ -348,12 +356,15 @@ public class RandomWorldGenerator : MonoBehaviour
 
 	}
 
-	void BuildBiome(Biome biome)
+	void BuildBiome()
 	{
+		Biome biome;
+		
 		for(int x = 0; x <= xChunkMax; x++)
 		{
 			for(int z =0; z<= zChunkMax; z++)
 			{
+				biome = worldChunks[x,z].biome;
 				switch(biome)
 				{
 				case Biome.PLAIN:
@@ -389,9 +400,8 @@ public class RandomWorldGenerator : MonoBehaviour
 
 	}
 
-	void BuildFlat(int chunkX, int chunkZ, float terrainMod)	//the array coordinates need to be passed for the chunk that's being processed.  They are needed for reference
-{					//terrainMod is a multiplier that allows for different heights to be applied to the chunks over all height.  the value sets the height at the center of the chunk
-		//add a random variant to each column and row, variants should be no more than 0.5 each. (can add multipliers based on terrain type)
+	void TerrainBuilder(int chunkX, int chunkZ, float terrainMod)	//the array coordinates need to be passed for the chunk that's being processed.  They are needed for reference
+	{					//terrainMod is a multiplier that allows for different heights to be applied to the chunks over all height.  the value sets the height at the center of the chunk
 
 		Chunk chunk = worldChunks [chunkX,chunkZ];
 
@@ -425,29 +435,39 @@ public class RandomWorldGenerator : MonoBehaviour
 
 		//determine adjustments due to surrounding heights.  adjustments will be calculated at 50% each direction because each point will have at least two adjustments applied to it.
 		float[,] blockAdj = new float[chunkSize, chunkSize];	//the 50% reduction will prevent adjustments from exceeding surrounding baseheights
+		float[,] terrainAdj = new float[chunkSize, chunkSize];
 
 		int xMax = chunk.blockHeights.GetUpperBound(0);
 		int zMax = chunk.blockHeights.GetUpperBound(1);
 
+		//terrainMod shouldscale in the reverse that the height sloping does
 
-		//initialize array
+		//initialize arrays
 		for(int x = 0; x <= xMax; x++)
 		{
 			for(int z = 0; z <= zMax; z++)
 			{
 				blockAdj[x,z] = 0f;
+				terrainAdj [x,z] = 0f;
 			}
 		}
 
+		float chunkSegment = (chunkSize/2f);
 		int difference = left - chunkHeight;
-		for(int x = 0; x < (int)xMax/2f; x++)
+		for(int x = 0; x <= (int)xMax/2f; x++)
 		{
 			for(int z = 0; z <= zMax; z++)
 			{	
 				float adj = 0f;
+
 				//find adjustment from left to center
-				adj = difference - ( (x+1) * ( difference/(chunkSize/2f) ) );
-				blockAdj[x,z] += adj / 2f;
+				adj = difference - ( (x+1) * ( difference/chunkSegment ) );
+				adj /= 2f;
+				blockAdj[x,z] += adj;
+				//apply terrainMod
+				adj = x * (terrainMod / (float)(chunkSegment - 1f) );
+				adj /= 2f;
+				terrainAdj[x,z] += adj;
 			}
 		}
 
@@ -458,20 +478,41 @@ public class RandomWorldGenerator : MonoBehaviour
 			{	
 				float adj = 0f;
 				//find adjustment from center to right   
-				adj = difference - ( (chunkSize - x) * ( difference/(chunkSize/2f) ) );
-				blockAdj[x,z] += adj / 2f;
+				adj = difference - ( (chunkSize - x) * ( difference/chunkSegment ) );
+				adj /= 2f;
+				blockAdj[x,z] += adj;
+				//apply terrainMod
+				adj += (xMax - x) * (terrainMod / (float)(chunkSegment - 1) );
+				adj /= 2f;
+				terrainAdj[x,z] += adj;
 			}
 		}
 
 		difference = down - chunkHeight;
-		for(int z = 0; z < (int)zMax/2f; z++)
+		for(int z = 0; z <= (int)zMax/2f; z++)
 		{	
 			for(int x = 0; x <= xMax; x++)
 			{	
 				float adj = 0f;
 				//find adjustment from down to center
-				adj = difference - ( (z+1) * ( difference/(chunkSize/2f) ) );
-				blockAdj[x,z] += adj / 2f;
+				adj = difference - ( (z+1) * ( difference/chunkSegment ) );
+				adj /= 2f;
+				blockAdj[x,z] += adj;
+				//apply terrainMod
+				adj += z * (terrainMod / (float)(chunkSegment - 1) );
+				adj /= 2f;
+				terrainAdj[x,z] += adj;
+
+
+//				float adj = 0f;
+//				//find adjustment from down to center
+//				adj = difference - ( (z+1) * ( difference/chunkSegment ) );
+//				
+//				//apply terrainMod
+//				adj += z * (terrainMod / (float)(chunkSegment - 1) );
+//				
+//				adj /= 2f;
+//				blockAdj[x,z] += adj;
 			}
 		}
 
@@ -482,11 +523,26 @@ public class RandomWorldGenerator : MonoBehaviour
 			{	
 				float adj = 0f;
 				//find adjustment from center to up
-				adj = difference - ( (chunkSize - z) * ( difference/(chunkSize/2f) ) );
-				blockAdj[x,z] += adj / 2f;
+				adj = difference - ( (chunkSize - z) * ( difference/chunkSegment ) );
+				adj /= 2f;
+				blockAdj[x,z] += adj;
+				//apply terrainMod
+				adj += (xMax - z) * (terrainMod / (float)(chunkSegment - 1) );
+				adj /= 2f;
+				terrainAdj[x,z] += adj;
+				
 			}
 		}
 
+		//testing, appliy terrain and blockadj
+		for(int x = 0; x <= xMax; x++)
+		{
+			for(int z = 0; z <= zMax; z++)
+			{
+				blockAdj[x,z] += terrainAdj[x,z];
+			}
+		}
+		
 		//add other random adjustments.  or PerlinNoise it.
 
 		//store the surface block locations for the chunk;
@@ -513,8 +569,7 @@ public class RandomWorldGenerator : MonoBehaviour
 		//create and add block to world.blocks
 		//create blocks at new Vector3(chunks x, chunk.height + blockAdj[x,z],chunks z);
 
-
-
+		
 	}
 
 
