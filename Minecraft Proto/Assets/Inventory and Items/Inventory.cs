@@ -8,13 +8,6 @@ public class Inventory : MonoBehaviour
 	public GUISkin skin;
 	public List<Item> inventory = new List<Item>();
 	public List<Item>slots = new List<Item>();
-
-	public List<Item>craftSlots = new List<Item>();
-	public List<Item>tempCraftSlots = new List<Item>();
-
-	public List<Item>equipSlots = new List<Item>();
-	public List<Item>tempEquipSlots = new List<Item>();
-
 	private bool showInventory;
 	private ItemDatabase database;
 	private bool showToolTip;
@@ -27,17 +20,10 @@ public class Inventory : MonoBehaviour
 	// Use this for initialization
 	void Start () 
 	{
-	
-		for(int i = 0; i < (slotsX * slotsY); i++)	//Set the number of inventory slots
+		for(int i = 0; i < (slotsX * slotsY); i++)
 		{
-
 			slots.Add (new Item());
 			inventory.Add (new Item());
-		}
-		for (int j = 0; j < 4; j++) //Set the number of crafting slots
-		{
-			tempCraftSlots.Add (new Item());
-			craftSlots.Add (new Item());
 		}
 		database = GameObject.FindGameObjectWithTag ("Item Database").GetComponent<ItemDatabase>();
 		AddItem(0);
@@ -90,7 +76,8 @@ public class Inventory : MonoBehaviour
 		AddItem(47);
 		AddItem(38);
 		*/
-	
+
+
 
 		
 		
@@ -141,147 +128,65 @@ public class Inventory : MonoBehaviour
 		{
 		Event e = Event.current; //Helps cut down on typing by using e instead of Event.current
 		int i = 0;
-		int k = 0;
 		int x = 0;
 		int y = 0;
+		
+		Rect screenRect = new Rect(0,0, slotsX*35 + 45, slotsY*35 + 45); //Used to drop items
 
-		Rect screenRect = new Rect (0, 0, slotsX * 35 + 75, slotsY * 35 + 75); //Used to drop items
-			
-			
+		//Rect craftRect = new Rect(x * 35 + 150, y * 35 + 150, 30, 30);
+		//GUI.Box (craftRect, "", skin.GetStyle("Slot"));
+		
+		
 			for (y = 0; y < slotsY; y++)	//Creates rows and columns of inventory slots
 			{
-				for (x = 0; x< slotsX; x++)	
+				for(x = 0; x< slotsX; x++)	
 				{
-					Rect slotRect = new Rect(x * 35, y * 35, 30, 30);
-					GUI.Box (slotRect, "", skin.GetStyle("Slot"));	//attaches slot skin to GUI placement
+				Rect slotRect = new Rect(x * 35, y * 35, 30, 30);
+				GUI.Box (slotRect, "", skin.GetStyle("Slot"));	//attaches slot skin to GUI placement
 
 
-					slots[i] = inventory[i];	//creates temperary inventory info holder
+				slots[i] = inventory[i];	//creates temperary inventory info holder
 
-					if(slots[i].itemName != null)	//if slot contains item
-					{
-						GUI.DrawTexture(slotRect, slots[i].itemIcon);
-
-						if (slotRect.Contains(e.mousePosition))
-						{
-							toolTip = CreateToolTip(slots[i]);
-							showToolTip = true;
-
-							if (e.button == 0 && e.type == EventType.mouseDrag && !draggingItem)		//if left clicked on item and dragged
-							{
-								draggingItem = true;
-								prevIndex = i;
-								draggedItem = slots[i];	//placeholder for currently dragged item info
-								inventory[i] = new Item();	//original slot emptied
-							}
-
-							if (e.type == EventType.mouseUp && draggingItem)		//What happens when letting go of mouse button with item being dragged
-							{
-								inventory[prevIndex] = inventory[i];
-								inventory[i] = draggedItem;
-								draggingItem = false;
-								draggedItem = null;
-							}
-						}
-					
-					} 
-
-
-											
-
-						else		//If no item is in slot that currently dragged item is placed over. Basically the same code just without using placeholder prevIndex to swap items.
-						{
-							
-							if (screenRect.Contains(e.mousePosition))
-							{
-								if (slotRect.Contains(e.mousePosition))
-								{
-									if(e.type == EventType.mouseUp && draggingItem)
-									{
-									print ("item move");
-										inventory[i] = draggedItem;
-										draggingItem = false;
-										draggedItem = null;
-									}
-								}
-							}
-							else
-							{
-								if(e.type == EventType.mouseUp && draggingItem)
-								{
-									print ("item drop");
-									GameObject droppedItem = GameObject.CreatePrimitive(PrimitiveType.Plane);
-									droppedItem.transform.position = GameObject.Find("FPSController").transform.position;
-									//droppedItem.AddComponent<Item>();
-									draggingItem = false;
-									draggedItem = null;
-								}
-							}
-						}
-
-
-						if(toolTip == "")
-						{
-							showToolTip = false;
-						}
-					
-					i++;
-				}
-
-			}	//end of inventory creation loop
-																			//for (int j = 0; j < invNum; j++) //debug test for items in slots
-																			//{
-																			//	print (inventory[j].itemName);
-																			//}
-
-		for (y = 0; y < 2; y++) 
-		{
-			for (x = 0; x < 2; x++)	
-			{
-				Rect craftRect = new Rect(x * 35, y * 35 + 150, 30, 30);
-				GUI.Box (craftRect, "", skin.GetStyle("Slot"));	//attaches slot skin to GUI placement
-				
-				tempCraftSlots[k] = craftSlots[k];
-				
-				if(tempCraftSlots[k].itemName != null)	//if slot contains item
+				if(slots[i].itemName != null)	//if slot contains item
 				{
-					GUI.DrawTexture(craftRect, tempCraftSlots[k].itemIcon);
-					
-					if (craftRect.Contains(e.mousePosition))
+					GUI.DrawTexture(slotRect, slots[i].itemIcon);
+					//GUI.DrawTexture(craftSlotRect, slots[i].itemIcon);
+
+					if (slotRect.Contains(e.mousePosition))
 					{
-						toolTip = CreateToolTip(tempCraftSlots[k]);
+						toolTip = CreateToolTip(slots[i]);
 						showToolTip = true;
-						
+
 						if (e.button == 0 && e.type == EventType.mouseDrag && !draggingItem)		//if left clicked on item and dragged
 						{
 							draggingItem = true;
-							prevIndex = k;
-							draggedItem = tempCraftSlots[k];	//placeholder for currently dragged item info
-							craftSlots[k] = new Item();	//original slot emptied
+							prevIndex = i;
+							draggedItem = slots[i];	//placeholder for currently dragged item info
+							inventory[i] = new Item();	//original slot emptied
 						}
-						
+
 						if (e.type == EventType.mouseUp && draggingItem)		//What happens when letting go of mouse button with item being dragged
 						{
-							craftSlots[prevIndex] = craftSlots[k];
-							craftSlots[k] = draggedItem;
+							inventory[prevIndex] = inventory[i];
+							inventory[i] = draggedItem;
 							draggingItem = false;
 							draggedItem = null;
 						}
 					}
-					
-				} 
 				
+				} 
+
 				else		//If no item is in slot that currently dragged item is placed over. Basically the same code just without using placeholder prevIndex to swap items.
 				{
 					
 					if (screenRect.Contains(e.mousePosition))
 					{
-						if (craftRect.Contains(e.mousePosition))
+						if (slotRect.Contains(e.mousePosition))
 						{
 							if(e.type == EventType.mouseUp && draggingItem)
 							{
-								print ("item move");
-								craftSlots[k] = draggedItem;
+							print ("item move");
+								inventory[i] = draggedItem;
 								draggingItem = false;
 								draggedItem = null;
 							}
@@ -300,21 +205,19 @@ public class Inventory : MonoBehaviour
 						}
 					}
 				}
+
+
 				if(toolTip == "")
 				{
 					showToolTip = false;
 				}
-				
-				k++;
+
+
+				i++;
+				}
 			}
-		}
-
-			
 
 		}
-
-
-
 
 	string CreateToolTip(Item item)
 	{
